@@ -1,4 +1,6 @@
 using System;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
@@ -9,6 +11,35 @@ namespace World
 {
     internal class UnityWorldViewModel
     {
+        static int UvTableLength = 6;
+        static Vector2[,] UvTable = new Vector2[,]
+        {
+            {
+                new Vector2(0.5f, 0),
+                new Vector2(0, 0),
+                new Vector2(0, 0.5f),
+                new Vector2(0, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0)
+            },
+            {
+                new Vector2(0.75f, 0),
+                new Vector2(0.5f, 0),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.75f, 0.5f),
+                new Vector2(0.75f, 0)
+            },
+            {
+                new Vector2(1.0f, 0),
+                new Vector2(0.75f, 0),
+                new Vector2(0.75f, 0.5f),
+                new Vector2(0.75f, 0.5f),
+                new Vector2(1.0f, 0.5f),
+                new Vector2(1.0f, 0)
+            },
+        };
+
         private IRemoteDataSource dataSource;
 
         public UnityWorldViewModel(IRemoteDataSource dataSource)
@@ -34,7 +65,7 @@ namespace World
 
         private DongInfo[] SelectDogs(Dong[] dongEntities)
         {
-            var dongs = new DongInfo[dongEntities.Length];
+            var dongs = new List<DongInfo>(dongEntities.Length);
             for (int i = 0; dongEntities.Length > i; i++)
             {
                 var dong = dongEntities[i];
@@ -46,32 +77,60 @@ namespace World
                     roomTypes[j] = new DongInfo.RoomType(roomType.meta.roomTypeId, romms);
                 }
                 var meshes = CreateMesh(roomTypes);
-                dongs[i] = new DongInfo(dong.meta.bdId, dong.meta.dong, dong.meta.height, roomTypes, meshes);
+                int height = Mathf.FloorToInt(roomTypes[0].rooms[0].vertices.Max(x => x.y) / 3);
+                dongs.Add(new DongInfo(dong.meta.bdId, dong.meta.dong, height, roomTypes, meshes));
             }
 
-            return dongs;
+            return dongs.ToArray();
         }
 
-        private static Mesh[] CreateMesh(DongInfo.RoomType[] roomTypes)
+        private Mesh[] CreateMesh(DongInfo.RoomType[] roomTypes)
         {
             List<Mesh> meshes = new List<Mesh>();
-
             foreach (var roomType in roomTypes)
             {
                 foreach (var room in roomType.rooms)
                 {
                     int[] triangles = new int[room.vertices.Length];
                     for (int j = 0; room.vertices.Length > j; j++)
+                    {
                         triangles[j] = j;
+                    }
 
                     Mesh mesh = new Mesh();
                     mesh.vertices = room.vertices;
                     mesh.triangles = triangles;
+                    mesh.RecalculateNormals();
+                    mesh.uv = GetUvs(mesh.normals);
                     meshes.Add(mesh);
                 }
             }
 
             return meshes.ToArray();
+        }
+
+        private Vector2[] GetUvs(Vector3[] normals)
+        {
+            Vector2[] uvs = new Vector2[normals.Length];
+            for (int i = 0; normals.Length > i; i++)
+            {
+                Vector3 yAxisNormal = new Vector3(normals[i].x, 0, normals[i].z);
+                float angle = Vector3.Dot(yAxisNormal, Vector3.forward);
+                if (Mathf.Abs(Mathf.Cos(Vector3.Dot(yAxisNormal, Vector3.right))) == 1)
+                {
+                    uvs[i] = UvTable[2, i % UvTableLength];
+                }
+                else if (Mathf.Cos(180) <= angle && angle <= Mathf.Cos(220))
+                {
+                    uvs[i] = UvTable[0, i % UvTableLength];
+                }
+                else
+                {
+                    uvs[i] = UvTable[1, i % UvTableLength];
+                }
+            }
+
+            return uvs;
         }
 
         private static DongInfo.Room[] SelectRooms(RoomType roomType)
