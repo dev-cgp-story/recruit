@@ -12,6 +12,7 @@ public class MyFramework : MonoBehaviour
     private Shader shader;
 
     private IWorldController controller;
+    private string removeField;
 
     void Awake()
     {
@@ -21,5 +22,14 @@ public class MyFramework : MonoBehaviour
     void Update()
     {
 
+    }
+
+    void OnGUI()
+    {
+        removeField = GUI.TextField(new Rect(50, 50, 100, 50), removeField);
+        if (GUI.Button(new Rect(50, 100, 100, 50), "Remove Dong"))
+        {
+            controller.OnEvent("REMOVE", removeField);
+        }
     }
 }

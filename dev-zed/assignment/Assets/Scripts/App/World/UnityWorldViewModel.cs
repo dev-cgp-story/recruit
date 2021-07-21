@@ -6,12 +6,14 @@ using UnityEngine;
 using UniRx;
 using Entity;
 using World.Dto;
+using World.Object;
 
 namespace World
 {
     internal class UnityWorldViewModel
     {
         static int UvTableLength = 6;
+        private List<IObject> objects;
         static Vector2[,] UvTable = new Vector2[,]
         {
             {
@@ -41,11 +43,14 @@ namespace World
         };
 
         private IRemoteDataSource dataSource;
+        private Subject<string> removeSubject = new Subject<string>();
 
         public UnityWorldViewModel(IRemoteDataSource dataSource)
         {
             this.dataSource = dataSource;
         }
+
+        public IObservable<string> OnRemoved() => removeSubject;
 
         public IObservable<DongInfo[]> GetDongs()
         {
@@ -149,11 +154,11 @@ namespace World
             return rooms;
         }
 
-        public void OnEvent(string eventType)
+        public void OnEvent(string eventType, string message)
         {
-            if (eventType == "generate")
+            if (eventType == "REMOVE")
             {
-
+                removeSubject.OnNext(message);
             }
         }
     }

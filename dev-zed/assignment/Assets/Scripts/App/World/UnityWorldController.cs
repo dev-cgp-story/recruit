@@ -1,7 +1,9 @@
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
 using World.Dto;
+using World.Object;
+using UnityBridge.Object;
 
 namespace World
 {
@@ -10,41 +12,26 @@ namespace World
         GameObject World = new GameObject("World");
         private UnityWorldViewModel viewModel;
         private IResourceDataSource resourceDataSource;
+        private List<IObject> objectList = new List<IObject>();
+
         public UnityWorldController(IRemoteDataSource remoteDataSource, IResourceDataSource resourceDataSource)
         {
             this.resourceDataSource = resourceDataSource;
             viewModel = new UnityWorldViewModel(remoteDataSource);
+
+            viewModel.OnRemoved()
+                .ObserveOnMainThread()
+                .Do(name => Remove(name))
+                .Subscribe();
+
             viewModel.GetDongs()
                 .ObserveOnMainThread()
-                .Do(dongInfos => DrawDongs(dongInfos))
-                .Subscribe();
-        }
-
-        void DrawDongs(DongInfo[] dongInfos)
-        {
-            foreach (var dongInfo in dongInfos)
-            {
-                GameObject dong = new GameObject(dongInfo.dong);
-                dong.transform.parent = World.transform;
-                foreach (var mesh in dongInfo.meshes)
+                .Do(dongInfos =>
                 {
-                    GameObject model = new GameObject("Mesh");
-                    model.transform.parent = dong.transform;
-                    var meshFilter = model.AddComponent<MeshFilter>();
-                    meshFilter.mesh = mesh;
-                    var meshRenderer = model.AddComponent<MeshRenderer>();
-                    meshRenderer.material = resourceDataSource.GetDongMaterial(dongInfo.height);
-
-                    for (int j = 0; mesh.vertices.Length > j; j++)
-                    {
-                        var vert = mesh.vertices[j];
-                        var vertObject = new GameObject($"Vert[{j}]");
-                        vertObject.transform.parent = model.transform;
-                        vertObject.transform.localPosition = vert;
-                        vertObject.AddComponent<VertGizmoDrawer>();
-                    }
-                }
-            }
+                    foreach (var dong in dongInfos)
+                        objectList.Add(new DongObject(dong, resourceDataSource));
+                })
+                .Subscribe();
         }
 
         void DrawRoomType(GameObject roomTypeObject, DongInfo.RoomType roomType)
@@ -66,9 +53,31 @@ namespace World
             }
         }
 
-        public void OnEvent(string eventType)
+        private void Add(IObject obj)
         {
-            viewModel.OnEvent(eventType);
+            if (obj == null)
+                return;
+
+            objectList.Add(obj);
+        }
+
+        private void Remove(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            int index = objectList.FindIndex(x => x.Name == name);
+            if (0 > index)
+                return;
+
+            var temp = objectList[index];
+            objectList.RemoveAt(index);
+            temp.OnDestroy();
+        }
+
+        public void OnEvent(string eventType, string message)
+        {
+            viewModel.OnEvent(eventType, message);
         }
     }
 }

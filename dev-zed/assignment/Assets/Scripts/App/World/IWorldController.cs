@@ -2,6 +2,6 @@ namespace World
 {
     public interface IWorldController
     {
-        void OnEvent(string eventType);
+        void OnEvent(string eventType, string message);
     }
 }
