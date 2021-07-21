@@ -33,7 +33,7 @@ namespace World
                     var meshFilter = model.AddComponent<MeshFilter>();
                     meshFilter.mesh = mesh;
                     var meshRenderer = model.AddComponent<MeshRenderer>();
-                    meshRenderer.material = resourceDataSource.GetRoomMaterial();
+                    meshRenderer.material = resourceDataSource.GetDongMaterial(dongInfo.height);
 
                     for (int j = 0; mesh.vertices.Length > j; j++)
                     {

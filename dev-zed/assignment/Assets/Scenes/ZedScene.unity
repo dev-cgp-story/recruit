@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -306,7 +306,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 839bc4f0468a04a11af2470d45735f98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomMaterial: {fileID: 2100000, guid: dde43d2baee6b48459bb715910819b49, type: 2}
+  roomTexture: {fileID: 2800000, guid: dea111140ddb641fbb9f8925f5bc0adb, type: 3}
+  shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
 --- !u!4 &1690204453
 Transform:
   m_ObjectHideFlags: 0

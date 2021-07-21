@@ -1,16 +1,27 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ResourceDataSource : IResourceDataSource
 {
-    private Material roomMaterial;
+    private Dictionary<int, Material> materialTable = new Dictionary<int, Material>();
+    private Texture dongTexture;
+    private Shader shader;
 
-    public ResourceDataSource(Material roomMaterial)
+    public ResourceDataSource(Texture dongTexture, Shader shader)
     {
-        this.roomMaterial = roomMaterial;
+        this.dongTexture = dongTexture;
+        this.shader = shader;
     }
 
-    public Material GetRoomMaterial()
+    public Material GetDongMaterial(int height)
     {
-        return roomMaterial;
+        if (materialTable.ContainsKey(height))
+            return materialTable[height];
+
+        var mat = new Material(shader);
+        mat.mainTexture = dongTexture;
+        mat.SetTextureScale("_BaseMap", new Vector2(1, height));
+        materialTable.Add(height, mat);
+        return mat;
     }
 }

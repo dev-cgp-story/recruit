@@ -77,7 +77,8 @@ namespace World
                     roomTypes[j] = new DongInfo.RoomType(roomType.meta.roomTypeId, romms);
                 }
                 var meshes = CreateMesh(roomTypes);
-                dongs.Add(new DongInfo(dong.meta.bdId, dong.meta.dong, dong.meta.height, roomTypes, meshes));
+                int height = Mathf.FloorToInt(roomTypes[0].rooms[0].vertices.Max(x => x.y) / 3);
+                dongs.Add(new DongInfo(dong.meta.bdId, dong.meta.dong, height, roomTypes, meshes));
             }
 
             return dongs.ToArray();

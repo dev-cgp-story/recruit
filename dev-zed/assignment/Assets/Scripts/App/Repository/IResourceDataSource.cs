@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IResourceDataSource
 {
-    Material GetRoomMaterial();
+    Material GetDongMaterial(int height);
 }
